@@ -1,144 +1,88 @@
-# recommend.py - Managed by Member 2
-# VERSION: Agentic GreenOps Watchdog (CSV-Logic Aligned)
+# integration_test.py - Master Orchestrator (Agentic Edition)
+# ROLE: Bridge between Memory (logic.py), Strategy (recommend.py), and Reasoning (brain.py).
+
+import warnings
 import os
+import logic      # Member 1's CSV & Math Engine
+import recommend  # Member 2's Ranked Recommendations
+import brain      # Member 3's Gemini Reasoning Engine
 
 # ══════════════════════════════════════════════════════════════════
-# 1. SUSTAINABILITY CALCULATOR (GreenOps Logic)
+# 0. DEMO PREP
 # ══════════════════════════════════════════════════════════════════
+warnings.filterwarnings("ignore")
 
-def calculate_green_impact(rupees_saved):
-    """
-    Scientific conversion: Money -> Energy -> Carbon -> Trees.
-    """
-    # 1. Indian Grid intensity: ₹10 approx 1kWh, 1kWh approx 0.7kg CO2
-    kg_co2_saved = round((rupees_saved / 10) * 0.7, 2)
+# ══════════════════════════════════════════════════════════════════
+# 1. SETUP PARAMETERS
+# ══════════════════════════════════════════════════════════════════
+USER_BUDGET = 50000.0 
+
+def run_workflow():
+    # ══════════════════════════════════════════════════════════════════
+    # 2. THE OBSERVATION PHASE (Data Memory)
+    # ══════════════════════════════════════════════════════════════════
+    # Generate multiple logs per run for a richer dataset
+    import random
+    for _ in range(random.randint(2, 4)):
+        new_data = logic.fetch_realtime_cloud_data()
+        logic.append_to_csv(new_data)
     
-    # 2. Scientific Offset: One mature tree absorbs ~21kg of CO2 PER YEAR.
-    trees_equivalent = round(kg_co2_saved / 21, 2) 
+    m = logic.perform_analysis(USER_BUDGET)
     
-    return {
-        "co2_saved_kg": kg_co2_saved, 
-        "trees_planted_equiv": trees_equivalent
-    }
+    if not m:
+        print("❌ Error: Memory retrieval failed.")
+        return
 
-# ══════════════════════════════════════════════════════════════════
-# 2. RECOMMENDATION ENGINE
-# ══════════════════════════════════════════════════════════════════
+    print(f"\n" + "═"*60)
+    print(f"🛡️ WATCHDOG AGENT: SYSTEMATIC AUDIT")
+    print(f"═"*60)
+    print(f"RECORDS LOGGED   : {m['history_count']} service entries.")
+    print(f"MONTHLY FORECAST : ₹{m['forecast']:,}")
+    print(f"PROJECTED GAP    : ₹{m['over_amt']:,}")
 
-def get_recommendation(overspend_percent):
-    """
-    Analyzes the 'over_pct' from Abhinav's logic.py.
-    """
-    if overspend_percent <= 0:
-        return {
-            "alert": False,
-            "severity": "SAFE",
-            "message": "Spending is within budget. No action needed.",
-            "plan": []
-        }
-
-    plan = []
-
-    # RANK 1: CRITICAL ACTION
-    if overspend_percent >= 25:
-        plan.append({
-            "rank": 1,
-            "priority": "HIGH",
-            "action": "Terminate Idle Systems",
-            "detail": "Immediate shutdown of unused Lambda/GPU anomalies.",
-            "savings_pct": 35,
-            "eco_impact": "High Carbon Reduction"
-        })
+    # ══════════════════════════════════════════════════════════════════
+    # 3. THE DECISION PHASE (Strategy Engine)
+    # ══════════════════════════════════════════════════════════════════
+    recommendation = recommend.get_recommendation(m['over_pct'])
     
-    # RANK 2: OPTIMIZATION ACTION
-    if overspend_percent >= 10:
-        plan.append({
-            "rank": 2,
-            "priority": "MEDIUM",
-            "action": "Instance Right-Sizing",
-            "detail": "Scale down oversized EC2/RDS instances.",
-            "savings_pct": 20,
-            "eco_impact": "Energy Efficiency"
-        })
+    print(f"\n[DECISION STRATEGY]")
+    print(f"SEVERITY: {recommendation.get('severity', 'SAFE')}")
+    print(f"MESSAGE : {recommendation['message']}")
 
-    # RANK 3: MINOR CLEANUP
-    plan.append({
-        "rank": 3,
-        "priority": "LOW",
-        "action": "Resource Scheduling",
-        "detail": "Off-hours shutdown for Dev/Test environments.",
-        "savings_pct": 8,
-        "eco_impact": "Vampire Power Elimination"
-    })
+    # ══════════════════════════════════════════════════════════════════
+    # 4. THE REASONING PHASE (Gemini AI)
+    # ══════════════════════════════════════════════════════════════════
+    # Passing raw metrics and recommendation to the AI for a rationale
+    print(f"\n[AGENT Recommendation Rationale]")
+    ai_thought = brain.get_agent_reasoning(m, recommendation)
+    print(f"💬 Watchdog: \"{ai_thought}\"")
 
-    # Severity logic
-    if overspend_percent >= 25:
-        summary_msg = f"CRITICAL: {overspend_percent}% Overspend. High anomaly detected."
-    elif overspend_percent >= 10:
-        summary_msg = f"WARNING: {overspend_percent}% Overspend. Trend is exceeding limits."
+    # ══════════════════════════════════════════════════════════════════
+    # 5. EXECUTION & IMPACT PHASE
+    # ══════════════════════════════════════════════════════════════════
+    if recommendation['alert']:
+        sim = recommend.simulate_action(recommendation, m['forecast'], USER_BUDGET)
+        
+        print("\n[RANKED OPTIMIZATION PLAN]")
+        for step in recommendation['plan']:
+            eco_tag = f" [{step.get('eco_impact', '')}]" if step.get('eco_impact') else ""
+            print(f"• {step['action']} (Priority: {step['priority']}){eco_tag}")
+        
+        print("\n[🌱 GREENOPS SUSTAINABILITY REPORT]")
+        print(f"CO2 Avoided: {sim['co2_saved_kg']} kg | Impact: {sim['trees_equiv']} trees.")
+        
+        print(f"\n[FINANCIAL RECOVERY]")
+        print(f"✅ Executing: {sim['action_taken']}")
+        print(f"📉 New Forecast: ₹{sim['new_forecast']:,}")
+        
+        if sim['now_within_budget']:
+            print(f"\n🎯 RESULT: Budget target restored.")
     else:
-        summary_msg = f"NOTICE: {overspend_percent}% Overspend. Minor optimization recommended."
+        print(f"\n✅ STATUS: Operating within healthy efficiency parameters.")
 
-    return {
-        "alert": True,
-        "severity": "CRITICAL" if overspend_percent >= 25 else "WARNING",
-        "message": summary_msg,
-        "plan": plan
-    }
+    print(f"\n" + "═"*60)
+    print(f"AUDIT COMPLETE")
+    print(f"═"*60 + "\n")
 
-# ══════════════════════════════════════════════════════════════════
-# 3. ACTION SIMULATOR
-# ══════════════════════════════════════════════════════════════════
-
-def simulate_action(recommendation, forecast, budget):
-    """
-    Simulates the result of applying the HIGHEST RANKED action.
-    """
-    if not recommendation["alert"] or not recommendation["plan"]:
-        return {
-            "action_taken": "None",
-            "amount_saved": 0,
-            "new_forecast": forecast,
-            "now_within_budget": forecast <= budget,
-            "co2_saved_kg": 0,
-            "trees_equiv": 0
-        }
-
-    # Pick the best fix based on the ranking
-    top_action = recommendation["plan"][0]
-    savings_multiplier = top_action["savings_pct"] / 100
-    saved_amount = round(forecast * savings_multiplier, 2)
-    new_forecast = round(forecast - saved_amount, 2)
-
-    # FIXED: Calling the correct impact function
-    green_impact = calculate_green_impact(saved_amount)
-
-    return {
-        "action_taken": top_action["action"],
-        "amount_saved": saved_amount,
-        "new_forecast": new_forecast,
-        "co2_saved_kg": green_impact["co2_saved_kg"],
-        "trees_equiv": green_impact["trees_planted_equiv"],
-        "now_within_budget": new_forecast <= budget
-    }
-
-# ══════════════════════════════════════════════════════════════════
-# 4. AGENT REASONING TOOL
-# ══════════════════════════════════════════════════════════════════
-
-def get_agent_decision_logic(metrics, recommendation, sim_result):
-    """
-    Explains the reasoning. Feeds the Agent Rationale section of the UI.
-    """
-    if not recommendation["alert"]:
-        return "Budget goals are met. I am maintaining the current resource efficiency."
-    
-    daily_cut_needed = metrics.get('required_daily_cut', 0)
-    top_action = recommendation['plan'][0]['action']
-    
-    return (
-        f"Goal Alignment: To offset the projection, a daily reduction of ₹{daily_cut_needed} is required. "
-        f"The Agent has prioritized '{top_action}' to save ₹{sim_result['amount_saved']}. "
-        f"🌱 Impact: This action avoids {sim_result['co2_saved_kg']}kg of CO2 emissions, "
-        f"equivalent to the work of {sim_result['trees_equiv']} trees."
-    )
+if __name__ == "__main__":
+    run_workflow()
